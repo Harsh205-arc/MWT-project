@@ -1,151 +1,79 @@
 <?php
+session_start();
 require_once __DIR__ . '/../config/db.php';
 
-/*
- STEP 1: Fetch all expenses + splits
-*/
+$_SESSION['house_id'] = 1; // TEMP until auth
+$houseId = $_SESSION['house_id'];
+
 $sql = "
 SELECT 
     e.e_id,
-    e.name AS expense,
-    e.amount AS total,
-    payer.u_name AS paid_by,
-    u.u_name AS user,
-    es.split
+    e.name AS expense_name,
+    e.amount,
+    u.u_name AS paid_by,
+    GROUP_CONCAT(
+        CONCAT(
+            split_user.u_name, ' owes ', 
+            payer.u_name, ' ',
+            es.split
+        ) SEPARATOR '<br>'
+    ) AS breakdown
 FROM expense e
-JOIN users payer ON e.paid_by = payer.u_id
+JOIN users payer ON payer.u_id = e.paid_by
 JOIN expense_split es ON es.es_id = e.e_id
-JOIN users u ON es.user_id = u.u_id
-ORDER BY e.e_id
+JOIN users split_user ON split_user.u_id = es.user_id
+JOIN users u ON u.u_id = e.paid_by
+WHERE e.house_id = ?
+AND e.archived = 0
+AND es.user_id != e.paid_by
+GROUP BY e.e_id
+ORDER BY e.created_at DESC
 ";
 
-$res = $conn->query($sql);
-
-$expenses = [];
-$balances = []; // who owes whom
-
-while ($r = $res->fetch_assoc()) {
-    $id = $r['e_id'];
-
-    if (!isset($expenses[$id])) {
-        $expenses[$id] = [
-            'expense' => $r['expense'],
-            'total' => $r['total'],
-            'paid_by' => $r['paid_by'],
-            'splits' => []
-        ];
-    }
-
-    $expenses[$id]['splits'][] = [
-        'user' => $r['user'],
-        'amount' => $r['split']
-    ];
-
-    // Balance calculation
-    if ($r['user'] !== $r['paid_by']) {
-        $key = $r['user'] . ' -> ' . $r['paid_by'];
-        $balances[$key] = ($balances[$key] ?? 0) + $r['split'];
-    }
-}
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $houseId);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-<title>Roommate Expense Clarity</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f7f3ff;
-    padding: 40px;
-}
-
-h1, h2 {
-    color: #5b2aa8;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    margin-bottom: 40px;
-}
-
-th {
-    background: #5b2aa8;
-    color: white;
-    padding: 12px;
-    text-align: left;
-}
-
-td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-}
-
-tr:nth-child(even) {
-    background: #f2ecff;
-}
-
-.note {
-    color: #444;
-    font-size: 14px;
-}
-</style>
+    <title>Expenses</title>
+    <link rel="stylesheet" href="theme.css">
 </head>
-
 <body>
 
 <h1>Expense Summary</h1>
 
-<table>
-<tr>
-    <th>Expense</th>
-    <th>Paid By</th>
-    <th>Total</th>
-    <th>Who Owes</th>
-</tr>
+<a class="btn" href="add_expense.php">+ Add Expense</a>
+<a class="btn" href="final_summary.php">View Final Summary</a>
+<a class="btn" href="archived_expenses.php">View Archived Expenses</a>
 
-<?php foreach ($expenses as $e): ?>
+
+<table>
+    <tr>
+        <th>Expense</th>
+        <th>Paid By</th>
+        <th>Total</th>
+        <th>Who Owes</th>
+        <th>Action</th>
+    </tr>
+
+<?php while ($row = $result->fetch_assoc()): ?>
 <tr>
-    <td><?= $e['expense'] ?></td>
-    <td><?= $e['paid_by'] ?></td>
-    <td><?= number_format($e['total'], 2) ?></td>
+    <td><?= htmlspecialchars($row['expense_name']) ?></td>
+    <td><?= htmlspecialchars($row['paid_by']) ?></td>
+    <td><?= number_format($row['amount'], 2) ?></td>
+    <td><?= $row['breakdown'] ?: 'Fully settled' ?></td>
     <td>
-        <?php
-        $all_paid = true;
-        foreach ($e['splits'] as $s) {
-            if ($s['user'] !== $e['paid_by']) {
-                echo "{$s['user']} owes {$e['paid_by']} " . number_format($s['amount'],2) . "<br>";
-                $all_paid = false;
-            }
-        }
-        if ($all_paid) echo "Fully settled";
-        ?>
+        <form method="POST" action="../controllers/archiveExpense.php">
+            <input type="hidden" name="expense_id" value="<?= $row['e_id'] ?>">
+            <button class="danger">Archive</button>
+        </form>
     </td>
 </tr>
-<?php endforeach; ?>
-</table>
-
-<h2>Final Balances (Who Owes Whom)</h2>
-
-<table>
-<tr>
-    <th>Owes</th>
-    <th>To</th>
-    <th>Amount</th>
-</tr>
-
-<?php foreach ($balances as $k => $amt): 
-    [$from, $to] = explode(' -> ', $k);
-?>
-<tr>
-    <td><?= $from ?></td>
-    <td><?= $to ?></td>
-    <td><?= number_format($amt,2) ?></td>
-</tr>
-<?php endforeach; ?>
+<?php endwhile; ?>
 
 </table>
 
