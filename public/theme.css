@@ -1,0 +1,44 @@
+/* ===== Shared Project Theme (NO framework) ===== */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f3ff;
+    color: #2d1b4e;
+    padding: 30px;
+}
+
+h1 {
+    color: #5a2ca0;
+    margin-bottom: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #cdb4f5;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #5a2ca0;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f0e9ff;
+}
+
+.badge-yes {
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.badge-no {
+    color: #c62828;
+    font-weight: bold;
+}
