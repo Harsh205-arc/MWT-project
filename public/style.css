@@ -1,0 +1,48 @@
+/* Base */
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Heading */
+h1 {
+    text-align: center;
+    color: #6a0dad; /* purple */
+    margin-bottom: 20px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #000000;
+    text-align: left;
+}
+
+/* Table header */
+th {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* Rows */
+tr:nth-child(even) {
+    background-color: #f7f2fb; /* very light purple tint */
+}
+
+/* Status text */
+td:last-child {
+    font-weight: bold;
+}
+
+td:last-child:contains("Completed") {
+    color: #6a0dad;
+}
