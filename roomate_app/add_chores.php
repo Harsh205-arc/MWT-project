@@ -1,33 +1,21 @@
 <?php
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require 'db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
- 
-    $house_id = $_POST['house_id'];
-    $assigned_to = $_POST['assigned_to'];
-    $title = $_POST['title'];
+var_dump($_POST);
 
-    $sql = "INSERT INTO chores (house_id, assinged_to, title)
-            VALUES (:house_id, :assinged_to, :title)";
+$title = $_POST['title'] ?? '';
+$assigned = $_POST['assigned_to'] ?? '';
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':house_id' => $house_id,
-        ':assinged_to' => $assigned_to,
-        ':title' => $title
-    ]);
+echo "<br>Title: $title";
+echo "<br>Assigned: $assigned";
 
-    echo "Chore added successfully";
-}
-?>
+$sql = "INSERT INTO chores (title, assinged_to, completed)
+        VALUES (?, ?, 0)";
 
-<form method="POST" action="">
-    <input type="number" name="house_id" placeholder="House ID" required><br><br>
-    <input type="number" name="assigned_to" placeholder="User ID" required><br><br>
-    <input type="text" name="title" placeholder="Chore title" required><br><br>
-    <button type="submit">Add Chore</button>
-</form>
+$stmt = $pdo->prepare($sql);
+$result = $stmt->execute([$title, $assigned]);
+
+var_dump($result);
