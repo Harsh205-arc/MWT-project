@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Chores</title>
-
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>Chores List</h1>
+
+<form id="addChoreForm">
+    <input type="text" id="title" placeholder="Chore title" required>
+    <input type="number" id="assigned_to" placeholder="Assigned user ID" required>
+    <button type="submit">Add Chore</button>
+</form>
+
+<br>
 
 <table>
     <thead>
@@ -20,13 +26,10 @@
             <th>Status</th>
         </tr>
     </thead>
-    <tbody id="choresTable">
-        <!-- Filled by JS -->
-    </tbody>
+    <tbody id="choresTable"></tbody>
 </table>
 
-<!-- JavaScript -->
-<script src="script.js"></script>
+<script src="chores.js"></script>
 
 </body>
 </html>
