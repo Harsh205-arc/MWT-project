@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Purple Chore List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3e8ff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      margin: 0;
+      min-height: 100vh;
+      padding-top: 50px;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 320px;
+      box-shadow: 0 4px 15px rgba(128, 0, 128, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      color: #6a0dad;
+    }
+
+    input {
+      width: 65%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #a855f7;
+    }
+
+    button {
+      padding: 8px 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #7c3aed;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #5b21b6;
+    }
+
+    /* CLEAN LIST (no purple background) */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 15px;
+    }
+
+    li {
+      background: #d8b4fe;
+      margin: 6px 0;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 6px;
+      color: #4c1d95;
+    }
+
+    .delete-btn {
+      background: #a855f7;
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #7e22ce;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Chore List</h2>
+
+    <input type="text" id="choreInput" placeholder="Enter a chore">
+    <button onclick="addChore()">Add</button>
+
+    <ul id="choreList"></ul>
+  </div>
+
+  <script>
+    const list = document.getElementById("choreList");
+
+// Load chores on page load
+window.onload = function () {
+  const chores = JSON.parse(localStorage.getItem("chores")) || [];
+  chores.forEach(chore => renderChore(chore));
+};
+
+function addChore() {
+  const input = document.getElementById("choreInput");
+  const choreText = input.value.trim();
+
+  if (choreText === "") return;
+
+  renderChore(choreText);
+
+  // Save to localStorage
+  let chores = JSON.parse(localStorage.getItem("chores")) || [];
+  chores.push(choreText);
+  localStorage.setItem("chores", JSON.stringify(chores));
+
+  input.value = "";
+}
+
+function renderChore(text) {
+  const li = document.createElement("li");
+
+  li.innerHTML = `
+    ${text}
+    <button class="delete-btn" onclick="removeChore(this, '${text}')">X</button>
+  `;
+
+  list.appendChild(li);
+}
+
+function removeChore(button, text) {
+  button.parentElement.remove();
+
+  // Remove from localStorage
+  let chores = JSON.parse(localStorage.getItem("chores")) || [];
+  chores = chores.filter(chore => chore !== text);
+  localStorage.setItem("chores", JSON.stringify(chores));
+}
+
+// Enter key support
+document.getElementById("choreInput").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    addChore();
+  }
+});
+  </script>
+
+</body>
+</html>
